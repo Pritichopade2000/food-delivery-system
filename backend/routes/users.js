@@ -1,0 +1,3 @@
+const express=require('express');const User=require('../models/User');const Order=require('../models/Order');const Food=require('../models/Food');const {auth,admin}=require('../middleware/auth');const router=express.Router();
+router.get('/',auth,admin,async(req,res)=>res.json(await User.find().select('-password').sort({createdAt:-1})));
+router.get('/stats',auth,admin,async(req,res)=>{const [users,foods,orders,revenue]=await Promise.all([User.countDocuments({role:'customer'}),Food.countDocuments(),Order.countDocuments(),Order.aggregate([{$match:{status:{$ne:'Cancelled'}}},{$group:{_id:null,total:{$sum:'$total'}}}])]);res.json({users,foods,orders,revenue:revenue[0]?.total||0});});module.exports=router;
